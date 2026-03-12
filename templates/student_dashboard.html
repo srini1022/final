@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="width: 100%; max-width: 1200px; margin-bottom: 2rem;">
+    <h2>Student Dashboard</h2>
+    <p style="color: var(--text-muted);">View your academic details and requests.</p>
+</div>
+
+<div class="dashboard-grid two-cols">
+    <!-- Student Profile -->
+    <div class="dash-card">
+        <h3>My Profile</h3>
+        {% if student %}
+            <div class="info-item">
+                <span class="info-label">Name</span>
+                <span class="info-value">{{ student.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">USN</span>
+                <span class="info-value">{{ student.usn }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Department</span>
+                <span class="info-value">{{ student.department }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Semester</span>
+                <span class="info-value">{{ student.semester }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Fee Status</span>
+                <span class="info-value status-badge status-{{ student.fee_status|lower }}">{{ student.fee_status }}</span>
+            </div>
+        {% else %}
+            <p>Profile details not found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Requests Table -->
+    <div class="dash-card">
+        <h3>My Requests</h3>
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td>{{ req.request_type }}</td>
+                            <td>{{ req.reason }}</td>
+                            <td>
+                                <span class="status-badge status-{{ req.status|lower }}">{{ req.status }}</span>
+                            </td>
+                            <td>{{ req.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No requests found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

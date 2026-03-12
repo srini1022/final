@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="width: 100%; max-width: 1200px; margin-bottom: 2rem;">
+    <h2>HOD Dashboard</h2>
+    <p style="color: var(--text-muted);">View all student requests and overarching department metrics.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dash-card">
+        <h3>All Requests Overview</h3>
+        {% if all_requests %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>USN</th>
+                            <th>Department</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in all_requests %}
+                        <tr>
+                            <td>{{ req.name }}</td>
+                            <td>{{ req.usn }}</td>
+                            <td>{{ req.department }}</td>
+                            <td>{{ req.request_type }}</td>
+                            <td>{{ req.reason }}</td>
+                            <td>
+                                <span class="status-badge status-{{ req.status|lower }}">{{ req.status }}</span>
+                            </td>
+                            <td>{{ req.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No requests available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

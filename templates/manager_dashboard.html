@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="width: 100%; max-width: 1200px; margin-bottom: 2rem;">
+    <h2>Manager Dashboard</h2>
+    <p style="color: var(--text-muted);">Manage students and review pending requests.</p>
+</div>
+
+<div class="dashboard-grid two-cols">
+    <!-- Pending Requests -->
+    <div class="dash-card" style="grid-column: 1 / -1;">
+        <h3>Pending Requests</h3>
+        {% if pending_requests %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>USN</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in pending_requests %}
+                        <tr>
+                            <td>{{ req.name }}</td>
+                            <td>{{ req.usn }}</td>
+                            <td>{{ req.request_type }}</td>
+                            <td>{{ req.reason }}</td>
+                            <td>{{ req.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem; border-color: var(--success); color: var(--success);" onclick="alert('Approve logic to be implemented')">Approve</button>
+                                <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem; border-color: var(--danger); color: var(--danger); margin-left: 0.5rem;" onclick="alert('Reject logic to be implemented')">Reject</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No pending requests to review.</p>
+        {% endif %}
+    </div>
+
+    <!-- All Students Overview -->
+    <div class="dash-card" style="grid-column: 1 / -1;">
+        <h3>All Registered Students</h3>
+        {% if students %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>USN</th>
+                            <th>Department</th>
+                            <th>Semester</th>
+                            <th>Fee Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for st in students %}
+                        <tr>
+                            <td>{{ st.name }}</td>
+                            <td>{{ st.usn }}</td>
+                            <td>{{ st.department }}</td>
+                            <td>{{ st.semester }}</td>
+                            <td>
+                                <span class="status-badge status-{{ st.fee_status|lower }}">{{ st.fee_status }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No students found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
