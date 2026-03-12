@@ -5,10 +5,10 @@
     <p>A unified portal for Students, Managers, and HODs. Experience seamless navigation, restricted views, and a dedicated workspace tailored for your role.</p>
     <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
         {% if session.get('user_id') %}
-            <a href="{{ url_for(session.get('role') + '_dashboard') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Go to Dashboard</a>
+            <a href="{{ url_for('main.' + session.get('role') + '_dashboard') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Go to Dashboard</a>
         {% else %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Get Started</a>
-            <a href="{{ url_for('login') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">Already have an account?</a>
+            <a href="{{ url_for('main.register') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Get Started</a>
+            <a href="{{ url_for('main.login') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">Already have an account?</a>
         {% endif %}
     </div>
 </div>

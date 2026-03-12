@@ -12,7 +12,7 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ url_for('index') }}" class="navbar-brand">
+        <a href="{{ url_for('main.index') }}" class="navbar-brand">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -22,16 +22,16 @@
             {% if session.get('user_id') %}
                 <span class="welcome-text">Hi, {{ session.get('username') }} ({{ session.get('role')|title }})</span>
                 {% if session.get('role') == 'student' %}
-                    <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+                    <a href="{{ url_for('main.student_dashboard') }}">Dashboard</a>
                 {% elif session.get('role') == 'manager' %}
-                    <a href="{{ url_for('manager_dashboard') }}">Dashboard</a>
+                    <a href="{{ url_for('main.manager_dashboard') }}">Dashboard</a>
                 {% elif session.get('role') == 'hod' %}
-                    <a href="{{ url_for('hod_dashboard') }}">Dashboard</a>
+                    <a href="{{ url_for('main.hod_dashboard') }}">Dashboard</a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-outline">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+                <a href="{{ url_for('main.login') }}">Login</a>
+                <a href="{{ url_for('main.register') }}" class="btn btn-primary">Sign Up</a>
             {% endif %}
         </div>
     </nav>
