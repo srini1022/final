@@ -30,7 +30,8 @@ It supports `Student`, `Manager`, and `HOD` roles with unique dashboards and sig
 
 ### COMPLETED:
 - **Database Architecture**: `finalproject` database with `users`, `students`, and `requests` tables is populated.
-- **Backend Setup**: `app.py` handles routes securely, and `database.py` handles PyMySQL connections. Password hashing is actively working via `bcrypt`.
+- **Backend Setup**: `app.py` acts as the factory, `routes.py` handles business logic securely, and `database.py` handles PyMySQL connections. Password hashing is actively working via `bcrypt`.
+- **Security & Config**: Centralized configuration via `config.py`. All sensitive database credentials and Flask keys are securely stored and loaded from the new `.env` file (see `.env.example`).
 - **Frontend & Aesthetics**: Modern UI with a glassmorphism/gradient style is fully integrated (`style.css`).
 - **Authentication**: 
   - Dynamic Registration Form: Students see extra inputs (USN, Dept) automatically via JS toggles.
