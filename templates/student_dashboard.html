@@ -176,13 +176,13 @@
                 </div>
                 <div style="background:#D1FAE5; border-radius:8px; padding:0.85rem; text-align:center;">
                     <div style="font-size:1.8rem; font-weight:800; color:#065F46;">
-                        {{ requests | selectattr('status', 'equalto', 'Approved') | list | length }}
+                        {{ requests | selectattr('status', 'equalto', 'APPROVED') | list | length }}
                     </div>
                     <div style="font-size:0.75rem; font-weight:600; color:#065F46; text-transform:uppercase;">Approved</div>
                 </div>
                 <div style="background:#FEE2E2; border-radius:8px; padding:0.85rem; text-align:center;">
                     <div style="font-size:1.8rem; font-weight:800; color:#991B1B;">
-                        {{ requests | selectattr('status', 'equalto', 'Rejected') | list | length }}
+                        {{ requests | selectattr('status', 'equalto', 'REJECTED') | list | length }}
                     </div>
                     <div style="font-size:0.75rem; font-weight:600; color:#991B1B; text-transform:uppercase;">Rejected</div>
                 </div>
