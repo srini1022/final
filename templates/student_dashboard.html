@@ -1,71 +1,245 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div style="width: 100%; max-width: 1200px; margin-bottom: 2rem;">
+
+<div style="width: 100%; max-width: 1100px; margin-bottom: 1.5rem;">
     <h2>Student Dashboard</h2>
-    <p style="color: var(--text-muted);">View your academic details and requests.</p>
+    <p style="color: var(--text-muted);">Submit document requests and track their status below.</p>
 </div>
 
-<div class="dashboard-grid two-cols">
-    <!-- Student Profile -->
+<!-- ─── Layout: Left = Form / Right = Profile ─── -->
+<div class="dashboard-grid two-cols" style="width: 100%; max-width: 1100px; align-items: start;">
+
+    <!-- LEFT: Request Form -->
     <div class="dash-card">
-        <h3>My Profile</h3>
+        <h3>📋 Request a Document</h3>
+
+        <!-- Auto-Filled Student Info (Read-Only) -->
+        <div style="background:#F3F4F6; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+            <p style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--primary); margin-bottom:0.75rem;">
+                Applicant Details (Auto-filled)
+            </p>
+            {% if student %}
+            <div class="info-item"><span class="info-label">Name</span><span class="info-value">{{ student.name }}</span></div>
+            <div class="info-item"><span class="info-label">USN</span><span class="info-value">{{ student.usn }}</span></div>
+            <div class="info-item"><span class="info-label">Department</span><span class="info-value">{{ student.department }}</span></div>
+            <div class="info-item"><span class="info-label">Semester</span><span class="info-value">{{ student.semester }}</span></div>
+            <div class="info-item" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                <span class="info-label">Email</span><span class="info-value">{{ student.email }}</span>
+            </div>
+            {% else %}
+            <p style="color:var(--danger); font-size:0.9rem;">⚠ Student profile not found. Please contact admin.</p>
+            {% endif %}
+        </div>
+
+        <!-- Document Request Form -->
         {% if student %}
-            <div class="info-item">
-                <span class="info-label">Name</span>
-                <span class="info-value">{{ student.name }}</span>
+        <form method="POST" action="{{ url_for('main.submit_request') }}" id="requestForm" enctype="multipart/form-data">
+
+            <!-- Personal Contact Details -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="mobile_number" style="font-weight:600; font-size:0.9rem;">Mobile Number <span style="color:var(--danger);">*</span></label>
+                    <input type="tel" name="mobile_number" id="mobile_number" class="form-control" required placeholder="Enter mobile no.">
+                </div>
+                <div class="form-group">
+                    <label for="telephone" style="font-weight:600; font-size:0.9rem;">Telephone</label>
+                    <input type="tel" name="telephone" id="telephone" class="form-control" placeholder="Enter landline no.">
+                </div>
             </div>
-            <div class="info-item">
-                <span class="info-label">USN</span>
-                <span class="info-value">{{ student.usn }}</span>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="form_email" style="font-weight:600; font-size:0.9rem;">Email ID <span style="color:var(--danger);">*</span></label>
+                    <input type="email" name="form_email" id="form_email" class="form-control" value="{{ student.email }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="pin_code" style="font-weight:600; font-size:0.9rem;">Area PIN Code <span style="color:var(--danger);">*</span></label>
+                    <input type="text" name="pin_code" id="pin_code" class="form-control" required placeholder="E.g. 560001">
+                </div>
             </div>
-            <div class="info-item">
-                <span class="info-label">Department</span>
-                <span class="info-value">{{ student.department }}</span>
+
+            <!-- Academic Details -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="register_number" style="font-weight:600; font-size:0.9rem;">Register Number <span style="color:var(--danger);">*</span></label>
+                    <input type="text" name="register_number" id="register_number" class="form-control" value="{{ student.usn }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="course" style="font-weight:600; font-size:0.9rem;">Course <span style="color:var(--danger);">*</span></label>
+                    <input type="text" name="course" id="course" class="form-control" value="{{ student.department }}" required>
+                </div>
             </div>
-            <div class="info-item">
-                <span class="info-label">Semester</span>
-                <span class="info-value">{{ student.semester }}</span>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="faculty" style="font-weight:600; font-size:0.9rem;">Faculty / School <span style="color:var(--danger);">*</span></label>
+                    <input type="text" name="faculty" id="faculty" class="form-control" required placeholder="E.g. Engineering">
+                </div>
+                <div class="form-group">
+                    <label for="batch" style="font-weight:600; font-size:0.9rem;">Batch (Year) <span style="color:var(--danger);">*</span></label>
+                    <input type="text" name="batch" id="batch" class="form-control" required placeholder="E.g. 2020-2024">
+                </div>
             </div>
-            <div class="info-item">
+
+            <div class="form-group">
+                <label style="font-weight:600; font-size:0.9rem;">Study Mode <span style="color:var(--danger);">*</span></label>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.3rem;">
+                        <input type="radio" name="study_mode" value="Full Time" required> Full Time
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.3rem;">
+                        <input type="radio" name="study_mode" value="Part Time" required> Part Time
+                    </label>
+                </div>
+            </div>
+
+            <!-- Request Details -->
+            <div class="form-group">
+                <label for="request_type" style="font-weight:600; font-size:0.9rem;">Subject (Document Type) <span style="color:var(--danger);">*</span></label>
+                <select name="request_type" id="request_type" class="form-control" required>
+                    <option value="" disabled selected>-- Select document type --</option>
+                    <option value="Study Certificate">Study Certificate</option>
+                    <option value="Scholarship">Scholarship</option>
+                    <option value="Bank Loan">Bank Loan</option>
+                    <option value="Passport">Passport</option>
+                    <option value="Higher Education">Higher Education</option>
+                    <option value="Bus Pass">Bus Pass</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="reason" style="font-weight:600; font-size:0.9rem;">Body of the Letter <span style="color:var(--danger);">*</span></label>
+                <textarea name="reason" id="reason" class="form-control" rows="5" required
+                    placeholder="Dear Sir/Mam, I hereby request the issue of the above document for the purpose of..."></textarea>
+            </div>
+
+            <!-- Cryptographic Digital Signature -->
+            <div class="form-group">
+                <label style="font-weight:600; font-size:0.9rem;">Cryptographic Digital Signature (.pem) <span style="color:var(--danger);">*</span></label>
+                <div style="border: 2px dashed var(--border); border-radius: 8px; background: #fff; margin-top: 0.5rem; padding: 1.5rem; text-align: center;">
+                    <input type="file" name="private_key" id="private_key" accept=".pem" required class="form-control" style="border: none; padding: 0; background: transparent;">
+                </div>
+                <small style="color: var(--text-muted); display: block; margin-top: 0.3rem;">Upload your private_key.pem file to mathematically sign this document.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submit-request-btn" style="width:100%; padding:0.8rem; font-size:1rem; margin-top: 1rem;">
+                Submit Request
+            </button>
+
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- RIGHT: Student Card + Request Stats -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+        <!-- Digital Identity Generator -->
+        <div class="dash-card" style="border-top: 4px solid #10B981; margin-bottom: 1.5rem;">
+            <h3>🔐 My Digital Identity</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Generate an RSA Cryptographic Key Pair to sign documents. Your Public Key will be registered, and your Private Key will download.
+            </p>
+            <form action="{{ url_for('main.generate_keys') }}" method="POST">
+                <button type="submit" class="btn btn-outline" style="width: 100%; border-color: #10B981; color: #10B981; font-weight: 600;">
+                    Generate Identity (.pem)
+                </button>
+            </form>
+        </div>
+
+        <!-- Student ID Card -->
+        <div class="dash-card" style="border-top: 4px solid var(--primary);">
+            <h3>🎓 My Profile</h3>
+            {% if student %}
+            <div class="info-item"><span class="info-label">Name</span><span class="info-value">{{ student.name }}</span></div>
+            <div class="info-item"><span class="info-label">USN</span><span class="info-value">{{ student.usn }}</span></div>
+            <div class="info-item"><span class="info-label">Department</span><span class="info-value">{{ student.department }}</span></div>
+            <div class="info-item"><span class="info-label">Semester</span><span class="info-value">{{ student.semester }}</span></div>
+            <div class="info-item" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
                 <span class="info-label">Fee Status</span>
                 <span class="info-value status-badge status-{{ student.fee_status|lower }}">{{ student.fee_status }}</span>
             </div>
-        {% else %}
-            <p>Profile details not found.</p>
-        {% endif %}
-    </div>
+            {% else %}
+            <p style="color: var(--text-muted);">Profile not found.</p>
+            {% endif %}
+        </div>
 
-    <!-- Requests Table -->
-    <div class="dash-card">
-        <h3>My Requests</h3>
-        {% if requests %}
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Reason</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for req in requests %}
-                        <tr>
-                            <td>{{ req.request_type }}</td>
-                            <td>{{ req.reason }}</td>
-                            <td>
-                                <span class="status-badge status-{{ req.status|lower }}">{{ req.status }}</span>
-                            </td>
-                            <td>{{ req.created_at.strftime('%Y-%m-%d') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <!-- Quick Stats -->
+        <div class="dash-card">
+            <h3>📊 My Request Stats</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                <div style="background:#FEF3C7; border-radius:8px; padding:0.85rem; text-align:center;">
+                    <div style="font-size:1.8rem; font-weight:800; color:#92400E;">
+                        {{ requests | selectattr('status', 'in', ['Pending', 'PENDING_MANAGER', 'PENDING_HOD']) | list | length }}
+                    </div>
+                    <div style="font-size:0.75rem; font-weight:600; color:#92400E; text-transform:uppercase;">Pending</div>
+                </div>
+                <div style="background:#D1FAE5; border-radius:8px; padding:0.85rem; text-align:center;">
+                    <div style="font-size:1.8rem; font-weight:800; color:#065F46;">
+                        {{ requests | selectattr('status', 'equalto', 'Approved') | list | length }}
+                    </div>
+                    <div style="font-size:0.75rem; font-weight:600; color:#065F46; text-transform:uppercase;">Approved</div>
+                </div>
+                <div style="background:#FEE2E2; border-radius:8px; padding:0.85rem; text-align:center;">
+                    <div style="font-size:1.8rem; font-weight:800; color:#991B1B;">
+                        {{ requests | selectattr('status', 'equalto', 'Rejected') | list | length }}
+                    </div>
+                    <div style="font-size:0.75rem; font-weight:600; color:#991B1B; text-transform:uppercase;">Rejected</div>
+                </div>
+                <div style="background:#EDE9FE; border-radius:8px; padding:0.85rem; text-align:center;">
+                    <div style="font-size:1.8rem; font-weight:800; color:#4C1D95;">{{ requests | length }}</div>
+                    <div style="font-size:0.75rem; font-weight:600; color:#4C1D95; text-transform:uppercase;">Total</div>
+                </div>
             </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ─── Request History Table ─── -->
+<div style="width: 100%; max-width: 1100px; margin-top: 2rem;">
+    <div class="dash-card">
+        <h3>📂 My Request History</h3>
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Document Type</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Submitted On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td style="font-weight:600; color:var(--primary);">#{{ req.request_id }}</td>
+                        <td><strong>{{ req.request_type }}</strong></td>
+                        <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                            title="{{ req.reason }}">{{ req.reason }}</td>
+                        <td>
+                            <span class="status-badge status-{{ req.status | lower | replace('_', '-') }}">
+                                {{ req.status | replace('_', ' ') }}
+                            </span>
+                        </td>
+                        <td style="color:var(--text-muted); font-size:0.9rem;">
+                            {{ req.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
-            <p style="color: var(--text-muted);">No requests found.</p>
+        <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted);">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">📭</div>
+            <p>No requests submitted yet.</p>
+            <p style="font-size:0.88rem; margin-top:0.35rem;">Use the form on the left to submit your first request.</p>
+        </div>
         {% endif %}
     </div>
 </div>
+
 {% endblock %}

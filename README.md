@@ -29,33 +29,28 @@ It supports `Student`, `Manager`, and `HOD` roles with unique dashboards and sig
 ## 📌 Current Status: What We've Built (Where We Stopped)
 
 ### COMPLETED:
-- **Database Architecture**: `finalproject` database with `users`, `students`, and `requests` tables is populated.
-- **Backend Setup**: `app.py` acts as the factory, `routes.py` handles business logic securely, and `database.py` handles PyMySQL connections. Password hashing is actively working via `bcrypt`.
-- **Security & Config**: Centralized configuration via `config.py`. All sensitive database credentials and Flask keys are securely stored and loaded from the new `.env` file (see `.env.example`).
+- **Database Architecture**: `finalproject` database fully integrated with `.env` configurations. Advanced schema handles expanded attributes.
+- **Backend Setup**: `app.py` acts as the factory, `routes.py` manages all business and status logic securely. Password hashing works via `bcrypt`.
 - **Frontend & Aesthetics**: Modern UI with a glassmorphism/gradient style is fully integrated (`style.css`).
-- **Authentication**: 
-  - Dynamic Registration Form: Students see extra inputs (USN, Dept) automatically via JS toggles.
-  - Login system checks passwords and session roles.
-- **Role-Based Redirection**: Successfully restricting access and mapping `@role_required` decorators.
-  - Students go to `/student_dashboard`
-  - Managers go to `/manager_dashboard`
-  - HODs go to `/hod_dashboard`
+- **Authentication**: Dynamic Registration and Dashboard Redirection enforcing `@role_required`.
+- **Exhaustive Student Form**: A massive request form capturing contact, academic records, and radio metrics.
+- **PKI Cryptographic Digital Signatures**: Upgraded from simple canvas drawing to mathematical RSA Cryptography. Students click a generate button to download their `private_key.pem` identity, and their public key saves to the DB dynamically. They then 'Sign' the document by uploading the `.pem` file to generate an encrypted SHA-256 Hash of their request data.
+- **Hierarchical Approval Workflow**:
+  - **Student**: Generates a request carrying status `PENDING_MANAGER`. Tracks historical tickets.
+  - **Manager / HOD Verification**: Dashboard allows admins to expand "View Full Form Details" directly in the table. The server dynamically checks the signature hash against the student's public key to verify mathematically that no data was tampered with, rendering a `✅ VALID` or `❌ FORGED` state before the Managers acts (`Forward to HOD` or `Reject` or `Approve`).
 
 ---
 
 ## ⏭️ Where to Start Next Time (Next Steps)
 
-Right now, the UI for the dashboards exists, but the **internal logic for making and managing requests is not yet implemented.** 
+Now that the core document request pipeline is functioning flawlessly—including digital tracking and hierarchical authority actions—here is what should be focused on next:
 
-Here is what you should focus on next time you open the project:
+1. **PDF Generation (Automated Certificate Dispatch):**
+   - Automatically compile a custom PDF containing the student's details, Date, and the stored **Digital Signature** when the HOD clicks "Approve".
+   - Serve the PDF back to the student dashboard so they can download it.
 
-1. **Student Dashboard - Submitting Requests:**
-   - Create a form in `student_dashboard.html` that allows the student to submit a new request (e.g., Leave, Fee Extension).
-   - Write a Flask `POST` route in `app.py` to insert this into the `requests` table in MySQL.
+2. **Email Server Notifications:**
+   - Integrate `Flask-Mail` so that students receive a live Email Notification when their application status is altered.
 
-2. **Manager Dashboard - Approving/Rejecting:**
-   - The Buttons for "Approve" and "Reject" are currently just triggering a JavaScript `alert()`.
-   - Update `app.py` to accept POST requests that update the `status` column in the `requests` table from "Pending" to "Approved" or "Rejected".
-
-3. **HOD Dashboard - Advanced Analytics:**
-   - Currently, the HOD just sees all requests in a table. Next, implement data aggregations (e.g., "Total Students", "Total Pending Requests").
+3. **HOD Advanced Analytics & Charts:**
+   - Integrate `Chart.js` into the HOD dashboard so they can view graphical trends representing the volume of Document Requests.
