@@ -251,16 +251,24 @@ def manager_dashboard():
 @role_required('manager')
 def manager_update_request(request_id):
     action = request.form.get('action')
+    rejection_reason = request.form.get('rejection_reason', '').strip()
+    
     if action == 'forward':
         new_status = 'PENDING_HOD'
     elif action == 'reject':
+        if not rejection_reason:
+            flash("You must provide a justification when rejecting a request.", "danger")
+            return redirect(url_for('main.manager_dashboard'))
         new_status = 'REJECTED'
     else:
         flash("Invalid action.", "danger")
         return redirect(url_for('main.manager_dashboard'))
 
     try:
-        query_db("UPDATE requests SET status = %s WHERE request_id = %s AND status = 'PENDING_MANAGER'", (new_status, request_id), commit=True)
+        if new_status == 'REJECTED':
+            query_db("UPDATE requests SET status = %s, rejection_reason = %s WHERE request_id = %s AND status = 'PENDING_MANAGER'", (new_status, rejection_reason, request_id), commit=True)
+        else:
+            query_db("UPDATE requests SET status = %s WHERE request_id = %s AND status = 'PENDING_MANAGER'", (new_status, request_id), commit=True)
         action_text = "forwarded to HOD" if new_status == 'PENDING_HOD' else "rejected"
         flash(f"Request {request_id} has been {action_text}.", "success")
     except Exception as e:
@@ -297,9 +305,14 @@ def hod_dashboard():
 @role_required('hod')
 def hod_update_request(request_id):
     action = request.form.get('action')
+    rejection_reason = request.form.get('rejection_reason', '').strip()
+    
     if action == 'approve':
         new_status = 'APPROVED'
     elif action == 'reject':
+        if not rejection_reason:
+            flash("You must provide a justification when rejecting a request.", "danger")
+            return redirect(url_for('main.hod_dashboard'))
         new_status = 'REJECTED'
     elif action == 'return_to_manager':
         new_status = 'PENDING_MANAGER'
@@ -308,7 +321,11 @@ def hod_update_request(request_id):
         return redirect(url_for('main.hod_dashboard'))
 
     try:
-        query_db("UPDATE requests SET status = %s WHERE request_id = %s AND status = 'PENDING_HOD'", (new_status, request_id), commit=True)
+        if new_status == 'REJECTED':
+            query_db("UPDATE requests SET status = %s, rejection_reason = %s WHERE request_id = %s AND status = 'PENDING_HOD'", (new_status, rejection_reason, request_id), commit=True)
+        else:
+            query_db("UPDATE requests SET status = %s WHERE request_id = %s AND status = 'PENDING_HOD'", (new_status, request_id), commit=True)
+        
         if new_status == 'APPROVED':
             action_text = "approved"
         elif new_status == 'REJECTED':

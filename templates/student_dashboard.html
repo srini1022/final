@@ -223,6 +223,11 @@
                             <span class="status-badge status-{{ req.status | lower | replace('_', '-') }}">
                                 {{ req.status | replace('_', ' ') }}
                             </span>
+                            {% if req.status == 'REJECTED' and req.rejection_reason %}
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #991B1B; background: #FEE2E2; padding: 0.4rem; border-radius: 4px; border-left: 3px solid #DC2626; max-width: 250px;">
+                                <strong>Reason:</strong> {{ req.rejection_reason }}
+                            </div>
+                            {% endif %}
                         </td>
                         <td style="color:var(--text-muted); font-size:0.9rem;">
                             {{ req.created_at.strftime('%d %b %Y, %I:%M %p') }}
