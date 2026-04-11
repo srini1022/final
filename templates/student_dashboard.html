@@ -228,6 +228,13 @@
                                 <strong>Reason:</strong> {{ req.rejection_reason }}
                             </div>
                             {% endif %}
+                            {% if req.status == 'APPROVED' and req.certificate_id %}
+                            <div style="margin-top: 0.5rem;">
+                                <a href="{{ url_for('main.student_download_certificate', request_id=req.request_id) }}" style="display: inline-block; padding: 0.3rem 0.6rem; background: #27ae60; color: white; text-decoration: none; border-radius: 4px; font-size: 0.8rem;">
+                                    <i class="fas fa-download"></i> Download Certificate
+                                </a>
+                            </div>
+                            {% endif %}
                         </td>
                         <td style="color:var(--text-muted); font-size:0.9rem;">
                             {{ req.created_at.strftime('%d %b %Y, %I:%M %p') }}

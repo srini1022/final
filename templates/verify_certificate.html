@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Verification</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .valid .icon {
+            color: #27ae60;
+        }
+        .invalid .icon {
+            color: #e74c3c;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .status {
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .valid .status {
+            background: #d4edda;
+            color: #155724;
+        }
+        .invalid .status {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details td {
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .details td:first-child {
+            font-weight: bold;
+            color: #6c757d;
+            width: 40%;
+        }
+        .details td:last-child {
+            color: #2c3e50;
+        }
+        .hash {
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container {% if valid %}valid{% else %}invalid{% endif %}">
+        {% if valid %}
+            <div class="icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1>Certificate Verified</h1>
+            <div class="status">
+                <i class="fas fa-shield-alt"></i> Authentic Document
+            </div>
+            
+            <div class="details">
+                <table>
+                    <tr>
+                        <td>Certificate ID</td>
+                        <td><strong>{{ certificate.certificate_id }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Student Name</td>
+                        <td>{{ certificate.student_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Department</td>
+                        <td>{{ certificate.department }}</td>
+                    </tr>
+                    <tr>
+                        <td>Request Type</td>
+                        <td>{{ certificate.request_type }}</td>
+                    </tr>
+                    <tr>
+                        <td>Issued On</td>
+                        <td>{{ certificate.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                </table>
+                
+                <div style="margin-top: 15px;">
+                    <strong>Document Hash (SHA-256):</strong>
+                    <div class="hash">{{ certificate.document_hash }}</div>
+                </div>
+            </div>
+        {% else %}
+            <div class="icon">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h1>Invalid Certificate</h1>
+            <div class="status">
+                <i class="fas fa-exclamation-triangle"></i> {{ message }}
+            </div>
+            <p style="color: #6c757d; margin-top: 20px;">
+                This certificate could not be verified. It may have been tampered with or does not exist in our records.
+            </p>
+        {% endif %}
+        
+        <div class="footer">
+            <i class="fas fa-university"></i> Official Document Verification System
+        </div>
+    </div>
+</body>
+</html>

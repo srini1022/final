@@ -337,3 +337,217 @@ def hod_update_request(request_id):
         flash(f"Error updating request: {str(e)}", "danger")
 
     return redirect(url_for('main.hod_dashboard'))
+# ============================================
+# CERTIFICATE GENERATION ROUTES
+# ============================================
+import os
+import base64
+from datetime import datetime
+from utils.pdf_generator import create_certificate
+from utils.qr_generator import generate_qr_code, generate_file_hash, get_local_ip
+
+# Output directories
+BASE_OUTPUT = "outputs"
+SIGN_FOLDER = os.path.join(BASE_OUTPUT, "signatures")
+PDF_FOLDER = os.path.join(BASE_OUTPUT, "pdfs")
+QR_FOLDER = os.path.join(BASE_OUTPUT, "qr")
+
+# Ensure directories exist
+os.makedirs(SIGN_FOLDER, exist_ok=True)
+os.makedirs(PDF_FOLDER, exist_ok=True)
+os.makedirs(QR_FOLDER, exist_ok=True)
+
+
+@main_blueprint.route('/hod/sign_certificate/<int:request_id>')
+@role_required('hod')
+def sign_certificate_page(request_id):
+    """Show the certificate signing page for HOD"""
+    # Get request and student details
+    request_data = query_db("""
+        SELECT r.*, s.name, s.usn, s.department, s.semester, s.email as student_email
+        FROM requests r
+        JOIN students s ON r.student_id = s.student_id
+        WHERE r.request_id = %s AND r.status = 'PENDING_HOD'
+    """, (request_id,), fetchone=True)
+    
+    if not request_data:
+        flash("Request not found or not pending for approval.", "danger")
+        return redirect(url_for('main.hod_dashboard'))
+    
+    return render_template('hod_sign_certificate.html', request_data=request_data)
+
+
+@main_blueprint.route('/hod/generate_certificate/<int:request_id>', methods=['POST'])
+@role_required('hod')
+def generate_certificate(request_id):
+    """Generate certificate with HOD signature and QR code"""
+    try:
+        # Get request and student details
+        request_data = query_db("""
+            SELECT r.*, s.name, s.usn, s.department, s.semester, s.email as student_email, s.student_id
+            FROM requests r
+            JOIN students s ON r.student_id = s.student_id
+            WHERE r.request_id = %s AND r.status = 'PENDING_HOD'
+        """, (request_id,), fetchone=True)
+        
+        if not request_data:
+            return {"error": "Request not found or not pending for approval."}, 400
+        
+        # Get signature image from request
+        data = request.json
+        if not data or 'signature' not in data:
+            return {"error": "Signature is required."}, 400
+        
+        signature_data = data['signature']
+        hod_name = data.get('hod_name', 'HOD')
+        
+        # Generate timestamp and certificate ID
+        timestamp = int(datetime.now().timestamp())
+        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        certificate_id = f"CERT-{timestamp}"
+        
+        # Save HOD signature
+        signature_path = os.path.join(SIGN_FOLDER, f"sign_{timestamp}.png")
+        
+        if "," in signature_data:
+            image_bytes = signature_data.split(",")[1]
+            with open(signature_path, "wb") as f:
+                f.write(base64.b64decode(image_bytes))
+        else:
+            return {"error": "Invalid signature format."}, 400
+        
+        # Generate QR code with local IP
+        host_ip = get_local_ip()
+        qr_path = os.path.join(QR_FOLDER, f"qr_{timestamp}.png")
+        verification_url = f"http://{host_ip}:5001/verify/{certificate_id}"
+        generate_qr_code(verification_url, qr_path)
+        
+        # Generate PDF
+        pdf_path = os.path.join(PDF_FOLDER, f"cert_{timestamp}.pdf")
+        
+        student_data = {
+            'name': request_data.get('name'),
+            'usn': request_data.get('usn'),
+            'department': request_data.get('department'),
+            'semester': request_data.get('semester'),
+            'email': request_data.get('student_email')
+        }
+        
+        create_certificate(
+            pdf_path,
+            student_data,
+            request_data,
+            signature_path,
+            qr_path,
+            certificate_id,
+            timestamp_str,
+            hod_name
+        )
+        
+        # Generate document hash
+        document_hash = generate_file_hash(pdf_path)
+        
+        # Save certificate to database
+        try:
+            query_db("""
+                INSERT INTO certificates 
+                (certificate_id, request_id, student_id, student_name, department, 
+                 request_type, signature_path, pdf_path, qr_path, document_hash, verification_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                certificate_id,
+                request_id,
+                request_data.get('student_id'),
+                request_data.get('name'),
+                request_data.get('department'),
+                request_data.get('request_type'),
+                signature_path,
+                pdf_path,
+                qr_path,
+                document_hash,
+                verification_url
+            ), commit=True)
+            
+            # Update request with certificate_id and status
+            query_db("""
+                UPDATE requests SET status = 'APPROVED', certificate_id = %s 
+                WHERE request_id = %s
+            """, (certificate_id, request_id), commit=True)
+            
+        except Exception as e:
+            return {"error": f"Database error: {str(e)}"}, 500
+        
+        return {"success": True, "certificate_id": certificate_id, "message": "Certificate generated successfully!"}
+        
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+@main_blueprint.route('/hod/download_certificate/<int:request_id>')
+@role_required('hod')
+def hod_download_certificate(request_id):
+    """HOD can view certificate details but NOT download"""
+    cert = query_db("""
+        SELECT * FROM certificates WHERE request_id = %s
+    """, (request_id,), fetchone=True)
+    
+    if not cert:
+        flash("Certificate not found.", "danger")
+        return redirect(url_for('main.hod_dashboard'))
+    
+    # Just show the certificate details, don't download
+    return render_template('certificate_details.html', certificate=cert)
+
+
+@main_blueprint.route('/student/download_certificate/<int:request_id>')
+@role_required('student')
+def student_download_certificate(request_id):
+    """Student can download their approved certificate"""
+    student = query_db("SELECT * FROM students WHERE user_id=%s", (session['user_id'],), fetchone=True)
+    
+    if not student:
+        flash("Student profile not found.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    
+    # Verify this request belongs to the student
+    request_data = query_db("""
+        SELECT * FROM requests WHERE request_id = %s AND student_id = %s
+    """, (request_id, student['student_id']), fetchone=True)
+    
+    if not request_data:
+        flash("Request not found.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    
+    if request_data.get('status') != 'APPROVED':
+        flash("Certificate is not yet approved.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    
+    cert = query_db("""
+        SELECT * FROM certificates WHERE request_id = %s
+    """, (request_id,), fetchone=True)
+    
+    if not cert or not cert.get('pdf_path'):
+        flash("Certificate not found.", "danger")
+        return redirect(url_for('main.student_dashboard'))
+    
+    return send_file(cert['pdf_path'], as_attachment=True)
+
+
+@main_blueprint.route('/verify/<certificate_id>')
+def verify_certificate(certificate_id):
+    """Public verification endpoint - accessible via QR code"""
+    cert = query_db("""
+        SELECT c.*, r.reason, s.name, s.usn, s.department 
+        FROM certificates c
+        JOIN requests r ON c.request_id = r.request_id
+        JOIN students s ON c.student_id = s.student_id
+        WHERE c.certificate_id = %s
+    """, (certificate_id,), fetchone=True)
+    
+    if not cert:
+        return render_template('verify_certificate.html', valid=False, message="Invalid Certificate")
+    
+    return render_template('verify_certificate.html', 
+                          valid=True, 
+                          certificate=cert,
+                          message="Certificate Verified")
